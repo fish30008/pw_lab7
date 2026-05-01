@@ -25,6 +25,7 @@ app.add_middleware(
 
 class TokenRequest(BaseModel):
     role: str
+    password: str | None = None
 
 class TokenResponse(BaseModel):
     access_token: str
@@ -37,10 +38,13 @@ class TokenResponse(BaseModel):
 async def login_for_access_token(request: TokenRequest):
     """
     Generate a short-lived JWT token (1 minute expiration).
-    Pass a JSON body like: {"role": "admin"} or {"role": "visitor"}
+    Pass a JSON body like: {"role": "admin", "password": "..."} or {"role": "visitor"}
     """
     if request.role not in ["admin", "visitor"]:
         raise HTTPException(status_code=400, detail="Role must be either 'admin' or 'visitor'")
+    
+    if request.role == "admin" and request.password != "test2026":
+        raise HTTPException(status_code=401, detail="Invalid admin password")
     
     # Create token with 1 minute expiration (as per lab requirements)
     access_token_expires = timedelta(minutes=1)
